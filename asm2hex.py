@@ -36,11 +36,46 @@ for i in range(0, len(asm_lines)):
             f3 = 0
             rd = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[0]).group(0))
             rs1 = 0
-            imm = int(re.search(r"[0-9]*", re.findall(r", ([0-9]*)", asm_lines[i])[0]).group(0))
-            command = hex((imm << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
-            while(len(command) < 8):
-                command = "0" + command
-            hex_line = hex(address) + command + "\n"
+            base = 10
+            if(re.search(r"0x", asm_lines[i])):
+                base = 16
+            imm = int(re.search(r"[0-9a-fA-F]*", re.findall(r", (0x)?([0-9a-fA-F]*)", asm_lines[i])[0][-1]).group(0), base)
+            if(imm < 2048):
+                command = hex((imm << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
+                while(len(command) < 8):
+                    command = "0" + command
+                hex_line = hex(address) + command + "\n"
+            else:
+                if(imm%4096 > 2048):
+                    command = hex((imm%4096 << 20) + (rd << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
+                    while(len(command) < 8):
+                        command = "0" + command
+                    hex_line = hex(address + 1) + command + "\n"
+                    command2 = hex((int(imm/4096 + 1) << 12) + (rd << 7) + 55)[2:]
+                    while(len(command2) < 8):
+                        command2 = "0" + command2
+                    hex_file.write(hex(address) + command2 + "\n")
+                    address = address + 1
+                elif(imm%4096 < 2048 and imm%4096 >= -2047):
+                    command = hex((imm%4096 << 20) + (rd << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
+                    while(len(command) < 8):
+                        command = "0" + command
+                    hex_line = hex(address + 1) + command + "\n"
+                    command2 = hex((int(imm/4096) << 12) + (rd << 7) + 55)[2:]
+                    while(len(command2) < 8):
+                        command2 = "0" + command2
+                    hex_file.write(hex(address) + command2 + "\n")
+                    address = address + 1
+                else:
+                    command = hex((imm%4096 << 20) + (rd << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
+                    while(len(command) < 8):
+                        command = "0" + command
+                    hex_line = hex(address + 1) + command + "\n"
+                    command2 = hex((int(imm/4096 + 1) << 12) + (rd << 7) + 55)[2:]
+                    while(len(command2) < 8):
+                        command2 = "0" + command2
+                    hex_file.write(hex(address) + command2 + "\n")
+                    address = address + 1
         elif(re.search(r"halt", asm_lines[i])):
             hex_line = hex(address) + "ffffffff\n"
         hex_file.write(hex_line)
