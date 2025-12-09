@@ -6,7 +6,9 @@ asm_file = open(asm_file_name, "r")
 
 asm_lines = asm_file.readlines()
 
-hex_file_name = input("Please input the hex file name: ")
+# hex_file_name = input("Please input the hex file name: ")
+
+hex_file_name = "out.hex"
 
 hex_file = open(hex_file_name, "w")
 
@@ -30,7 +32,10 @@ for i in range(0, len(asm_lines)):
             f3 = 1
             rd = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[0]).group(0))
             rs1 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[1]).group(0))
-            imm = int(re.search(r"[0-9]*", re.findall(r", ([0-9]*)", asm_lines[i])[1]).group(0))
+            base = 10
+            if(re.search(r"0x", asm_lines[i])):
+                base = 16
+            imm = int(re.search(r"[0-9a-fA-F]*", re.findall(r", (0x)?([0-9a-fA-F]*)", asm_lines[i])[-1][-1]).group(0), base)
             command = hex((imm << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
             while(len(command) < 8):
                 command = "0" + command
@@ -40,7 +45,50 @@ for i in range(0, len(asm_lines)):
             f3 = 5
             rd = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[0]).group(0))
             rs1 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[1]).group(0))
-            imm = int(re.search(r"[0-9]*", re.findall(r", ([0-9]*)", asm_lines[i])[1]).group(0))
+            base = 10
+            if(re.search(r"0x", asm_lines[i])):
+                base = 16
+            imm = int(re.search(r"[0-9a-fA-F]*", re.findall(r", (0x)?([0-9a-fA-F]*)", asm_lines[i])[-1][-1]).group(0), base)
+            command = hex((imm << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
+            while(len(command) < 8):
+                command = "0" + command
+            hex_line = hex_addr + command + "\n"
+        elif(re.search(r"srai", asm_lines[i])):
+            opcode = 19
+            f3 = 5
+            f7 = 32
+            rd = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[0]).group(0))
+            rs1 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[1]).group(0))
+            base = 10
+            if(re.search(r"0x", asm_lines[i])):
+                base = 16
+            imm = int(re.search(r"[0-9a-fA-F]*", re.findall(r", (0x)?([0-9a-fA-F]*)", asm_lines[i])[-1][-1]).group(0), base)
+            command = hex((f7 << 25) + (imm << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
+            while(len(command) < 8):
+                command = "0" + command
+            hex_line = hex_addr + command + "\n"
+        elif(re.search(r"xori", asm_lines[i])):
+            opcode = 19
+            f3 = 4
+            rd = int(re.search(r"[0-9]*", re.findall(r"x([0-9]+)", asm_lines[i])[0]).group(0))
+            rs1 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]+)", asm_lines[i])[1]).group(0))
+            base = 10
+            if(re.search(r"0x", asm_lines[i])):
+                base = 16
+            imm = int(re.search(r"[0-9a-fA-F]*", re.findall(r", (0x)?([0-9a-fA-F]*)", asm_lines[i])[-1][-1]).group(0), base)
+            command = hex((imm << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
+            while(len(command) < 8):
+                command = "0" + command
+            hex_line = hex_addr + command + "\n"
+        elif(re.search(r"ori", asm_lines[i])):
+            opcode = 19
+            f3 = 6
+            rd = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[0]).group(0))
+            rs1 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[1]).group(0))
+            base = 10
+            if(re.search(r"0x", asm_lines[i])):
+                base = 16
+            imm = int(re.search(r"[0-9a-fA-F]*", re.findall(r", (0x)?([0-9a-fA-F]*)", asm_lines[i])[-1][-1]).group(0), base)
             command = hex((imm << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
             while(len(command) < 8):
                 command = "0" + command
@@ -51,8 +99,97 @@ for i in range(0, len(asm_lines)):
             f3 = 0
             rd = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[0]).group(0))
             rs1 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[1]).group(0))
-            imm = int(re.search(r"[0-9]*", re.findall(r", ([0-9]*)", asm_lines[i])[1]).group(0))
+            base = 10
+            if(re.search(r"0x", asm_lines[i])):
+                base = 16
+            imm = int(re.search(r"[0-9a-fA-F]*", re.findall(r", (0x)?([0-9a-fA-F]*)", asm_lines[i])[-1][-1]).group(0), base)
             command = hex((imm << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
+            while(len(command) < 8):
+                command = "0" + command
+            hex_line = hex_addr + command + "\n"
+        elif(re.search(r"andi", asm_lines[i])):
+            #store everything as integers and bit shift as needed
+            opcode = 19
+            f3 = 7
+            rd = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[0]).group(0))
+            rs1 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[1]).group(0))
+            base = 10
+            if(re.search(r"0x", asm_lines[i])):
+                base = 16
+            imm = int(re.search(r"[0-9a-fA-F]*", re.findall(r", (0x)?([0-9a-fA-F]*)", asm_lines[i])[-1][-1]).group(0), base)
+            command = hex((imm << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
+            while(len(command) < 8):
+                command = "0" + command
+            hex_line = hex_addr + command + "\n"
+        elif(re.search(r"sll", asm_lines[i])):
+            #store everything as integers and bit shift as needed
+            opcode = 51
+            f3 = 1
+            f7 = 0
+            rd = int(re.search(r"[0-9]*", re.findall(r"x([0-9]+)", asm_lines[i])[0]).group(0))
+            rs1 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[1]).group(0))
+            rs2 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[2]).group(0))
+            command = hex((f7 << 25) + (rs2 << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
+            while(len(command) < 8):
+                command = "0" + command
+            hex_line = hex_addr + command + "\n"
+        elif(re.search(r"srl", asm_lines[i])):
+            #store everything as integers and bit shift as needed
+            opcode = 51
+            f3 = 5
+            f7 = 0
+            rd = int(re.search(r"[0-9]*", re.findall(r"x([0-9]+)", asm_lines[i])[0]).group(0))
+            rs1 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[1]).group(0))
+            rs2 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[2]).group(0))
+            command = hex((f7 << 25) + (rs2 << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
+            while(len(command) < 8):
+                command = "0" + command
+            hex_line = hex_addr + command + "\n"
+        elif(re.search(r"sra", asm_lines[i])):
+            #store everything as integers and bit shift as needed
+            opcode = 51
+            f3 = 5
+            f7 = 32
+            rd = int(re.search(r"[0-9]*", re.findall(r"x([0-9]+)", asm_lines[i])[0]).group(0))
+            rs1 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[1]).group(0))
+            rs2 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[2]).group(0))
+            command = hex((f7 << 25) + (rs2 << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
+            while(len(command) < 8):
+                command = "0" + command
+            hex_line = hex_addr + command + "\n"
+        elif(re.search(r"xor", asm_lines[i])):
+            #store everything as integers and bit shift as needed
+            opcode = 51
+            f3 = 4
+            f7 = 0
+            rd = int(re.search(r"[0-9]*", re.findall(r"x([0-9]+)", asm_lines[i])[0]).group(0))
+            rs1 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]+)", asm_lines[i])[1]).group(0))
+            rs2 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]+)", asm_lines[i])[2]).group(0))
+            command = hex((f7 << 25) + (rs2 << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
+            while(len(command) < 8):
+                command = "0" + command
+            hex_line = hex_addr + command + "\n"
+        elif(re.search(r"or", asm_lines[i])):
+            #store everything as integers and bit shift as needed
+            opcode = 51
+            f3 = 6
+            f7 = 0
+            rd = int(re.search(r"[0-9]*", re.findall(r"x([0-9]+)", asm_lines[i])[0]).group(0))
+            rs1 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[1]).group(0))
+            rs2 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[2]).group(0))
+            command = hex((f7 << 25) + (rs2 << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
+            while(len(command) < 8):
+                command = "0" + command
+            hex_line = hex_addr + command + "\n"
+        elif(re.search(r"and", asm_lines[i])):
+            #store everything as integers and bit shift as needed
+            opcode = 51
+            f3 = 7
+            f7 = 0
+            rd = int(re.search(r"[0-9]*", re.findall(r"x([0-9]+)", asm_lines[i])[0]).group(0))
+            rs1 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[1]).group(0))
+            rs2 = int(re.search(r"[0-9]*", re.findall(r"x([0-9]*)", asm_lines[i])[2]).group(0))
+            command = hex((f7 << 25) + (rs2 << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
             while(len(command) < 8):
                 command = "0" + command
             hex_line = hex_addr + command + "\n"
