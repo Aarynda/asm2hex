@@ -14,6 +14,52 @@ hex_file = open(hex_file_name, "w")
 
 # print(asm_lines)
 
+def dec_to_bin_imm(imm):
+	if(imm < 0):
+		imm = imm + 4
+	bin_imm = str(bin(imm))
+	print("binary value passed to function: " + bin_imm)
+	if(bin_imm[0] == "-"):
+		bin_imm = bin_imm[3:]
+		bin_imm_flip = ""
+		#swap all bits
+		print(bin_imm)
+		for c in range(0, len(bin_imm)):
+			if(bin_imm[c] == "0"):
+				# bin_imm = bin_imm[0:c] + "1" + bin_imm[c:len(bin_imm) - 1]
+				bin_imm_flip = bin_imm_flip + "1"
+			elif(bin_imm[c] == "1"):
+				# bin_imm = bin_imm[0:c] + "0" + bin_imm[c:len(bin_imm) - 1]
+				bin_imm_flip = bin_imm_flip + "0"
+			print(bin_imm_flip)
+		#need to figure out how to add 1 as well
+		if(bin_imm_flip[-1] == "0"):
+			bin_imm_flip = bin_imm_flip[:-1] + "1"
+		else:
+			#this is simply not yet correct
+			p = -1
+			while p > -1 * (len(bin_imm_flip) + 1):
+				print("p index: " + str(p))
+				print(bin_imm_flip[p])
+				if(bin_imm_flip[p] == "0"):
+					bin_imm_flip = bin_imm_flip[:p] + "1"
+					
+					while p < -1:
+						bin_imm_flip = bin_imm_flip + "0"
+						p = p + 1
+					p = -1 * len(bin_imm_flip)
+				else:
+					p = p - 1
+		while(len(bin_imm_flip) < 32):
+			bin_imm_flip = "1" + bin_imm_flip
+		bin_imm = bin_imm_flip
+	else:
+		bin_imm = bin_imm[2:]
+		while(len(bin_imm) < 32):
+			bin_imm = "0" + bin_imm
+	print(str(bin_imm))
+	return bin_imm
+
 #TODO:
 # branch instructions
 # lw/sw instructions
@@ -37,7 +83,7 @@ for l in range(0, len(asm_lines)):
 			continue
 	if(re.search(r"([_a-zA-Z0-9]+):", label_line)):
 		label = re.search(r"([_a-zA-Z0-9]+):", label_line).group(0)
-		labels[label[:-1]] = label_address << 2
+		labels[label[:-1]] = (label_address) << 2
 #		 label_address = label_address + 1
 	elif(re.search(r"org", label_line)):
 		base = 10
@@ -104,17 +150,24 @@ for i in range(0, len(asm_lines)):
 				imm_str = "0" + imm_str
 			hex_line = hex_addr + imm_str + "\n"
 		elif(re.search(r"jal", asm_lines[i])):
-			opcode = 103
+			opcode = 111
 			rd = 1 #not constant, but at least something
-			if(re.search(r" ([a-zA-Z]([a-zA-Z_]|<?!x[0-9])+)", asm_lines[i])):
-				imm = labels[re.findall(r" ([a-zA-Z]([a-zA-Z_]|<?!x[0-9])+)", asm_lines[i])[-1][0]]
+			if(re.findall(r"([a-zA-Z]([a-zA-Z_0-9]|<?!x[0-9])+)", asm_lines[i])):
+				imm = (labels[(re.findall(r"([a-zA-Z]([a-zA-Z_0-9]|<?!x[0-9])+)", asm_lines[i])[-1][0])] - ((address + 1) << 2))
 			else:
 				base = 10
 				if(re.search(r"0x", asm_lines[i])):
 					base = 16
 				imm = int(re.search(r"[0-9a-fA-F]*", re.findall(r" (0x)?([0-9a-fA-F]*)", asm_lines[i])[-1][-1]).group(0), base)
+			print(imm)
 			# need to take into account bit swizzling lowkey dont wanna do that rn
-			command = hex((imm << 12) + (rd << 7) + opcode)[2:]
+			bin_imm = dec_to_bin_imm(imm)
+			print("immediate value (for jal): " + bin_imm)
+			print(len(bin_imm[-21] + bin_imm[-11:-1] + bin_imm[-12] + bin_imm[-20:-12]))
+			imm_val = int(bin_imm[-21] + bin_imm[-11:-1] + bin_imm[-12] + bin_imm[-20:-12], 2)
+			print("bit-swizzled imm val: " + str(hex(imm_val)))
+			command = hex((imm_val << 12) + (rd << 7) + opcode)[2:]
+			print(command)
 			while(len(command) < 8):
 				command = "0" + command
 			hex_line = hex_addr + command + "\n"
@@ -136,46 +189,7 @@ for i in range(0, len(asm_lines)):
 				imm = int(re.search(r"[0-9a-fA-F]*", re.findall(r", (0x)?([0-9a-fA-F]*)", asm_lines[i])[-1][-1]).group(0), base)
 			# this part has to be fucking weird - i cant just bit slice
 			# fuck i have to do weird int to hex str conversion and concetenation :(
-			bin_imm = str(bin(imm))
-			print("immediate val: " + str(imm))
-
-			if(bin_imm[0] == "-"):
-				bin_imm = bin_imm[3:]
-				bin_imm_flip = ""
-				#swap all bits
-				print(bin_imm)
-				for c in range(0, len(bin_imm)):
-					if(bin_imm[c] == "0"):
-						# bin_imm = bin_imm[0:c] + "1" + bin_imm[c:len(bin_imm) - 1]
-						bin_imm_flip = bin_imm_flip + "1"
-					elif(bin_imm[c] == "1"):
-						# bin_imm = bin_imm[0:c] + "0" + bin_imm[c:len(bin_imm) - 1]
-						bin_imm_flip = bin_imm_flip + "0"
-					print(bin_imm_flip)
-				#need to figure out how to add 1 as well
-				if(bin_imm_flip[-1] == "0"):
-					bin_imm_flip = bin_imm_flip[:-1] + "1"
-				else:
-					p = -2
-					while p > -1 * len(bin_imm_flip):
-						if(bin_imm_flip[p] == "0"):
-							bin_imm_flip = bin_imm_flip[:p] + "1"
-							while p < -1:
-								bin_imm_flip = bin_imm_flip + "0"
-								p = p + 1
-							p = -1 * len(bin_imm_flip)
-						else:
-							p = p - 1
-				while(len(bin_imm_flip) < 32):
-					bin_imm_flip = "1" + bin_imm_flip
-				bin_imm = bin_imm_flip
-			else:
-				bin_imm = bin_imm[2:]
-				while(len(bin_imm) < 32):
-					bin_imm = "0" + bin_imm
-			
-			print(bin_imm)
-			print(str(int(bin_imm, 2)))
+			bin_imm = dec_to_bin_imm(imm)
 			# 34 chars long
 			# 1000_0001_1110
 			imm_pt1 = int(bin_imm[-5:-1] + bin_imm[-12], 2)
@@ -186,8 +200,6 @@ for i in range(0, len(asm_lines)):
 			while(len(command) < 8):
 				command = "0" + command
 			hex_line = hex_addr + command + "\n"
-
-
 		elif(re.search(r"slli", asm_lines[i])):
 			opcode = 19
 			f3 = 1
