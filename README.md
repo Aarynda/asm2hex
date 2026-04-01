@@ -3,10 +3,10 @@ Output is of the form 0xAAAABBBBBBBB, where A represents the 2-bytes used for th
 Additional command-line support will eventually be added to allow for variable-length address spaces, as well as a choice to simply remove the addresses.
 | Extension | Level of Support |
 |:---:|:---:|
-|RV32I|In Progress|
+|RV32I|Complete|
 |RV32M|No|
 |RV32A|No|
-|RV32F|No|
+|RV32F|In Progress|
 |RV32D|No|
 |RV32C|No|
 |RV32B|No|
