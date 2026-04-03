@@ -1,4 +1,5 @@
 import re
+import struct
 
 asm_file_name = input("Please input the asm file name: ")
 
@@ -166,11 +167,14 @@ for i in range(0, len(asm_lines)):
 					while(len(data) < 8):
 						data = "0" + data
 					hex_line = hex_addr + data + "\n"
+			elif(re.search(r".", asm_lines[i])):
+				fp = float(re.search(r"-?[0-9]+.[0-9]*", asm_lines[i]).group(0))
+				fp_bin = hex(int(format(struct.unpack('!I', struct.pack('!f', fp))[0], '032b'), 2))[2:]
+				hex_line = hex_addr + fp_bin + "\n"
 			else:
 				base = 10
 				if(re.search(r"0x", asm_lines[i])):
 					base = 16
-				# print("int found: " + str(re.findall(r"(0x)?([0-9a-fA-F]+)", asm_lines[i])))
 				imm = int(re.search(r"[0-9a-fA-F]+", re.findall(r"(0x)?([0-9a-fA-F]+)", asm_lines[i])[-1][-1]).group(0), base)
 				imm_str = str(hex(imm)[2:])
 				while(len(imm_str) < 8):
@@ -405,7 +409,28 @@ for i in range(0, len(asm_lines)):
 				f7 = 0
 			else:
 				f7 = 1
-
+			f3 = 0
+			rd = int(re.search(r"[0-9]+", re.findall(r"f([0-9]+)", asm_lines[i])[0]).group(0))
+			rs1 = int(re.search(r"[0-9]+", re.findall(r"f([0-9]+)", asm_lines[i])[1]).group(0))
+			rs2 = int(re.search(r"[0-9]+", re.findall(r"f([0-9]+)", asm_lines[i])[2]).group(0))
+			command = hex((f7 << 25) + (rs2 << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
+			while(len(command) < 8):
+				command = "0" + command
+			hex_line = hex_addr + command + "\n"
+		elif(re.search(r"fsub.[sd]", asm_lines[i])):
+			opcode = 83
+			if(re.search(r"fsub.s", asm_lines[i])):
+				f7 = 4
+			else:
+				f7 = 5
+			f3 = 0
+			rd = int(re.search(r"[0-9]+", re.findall(r"f([0-9]+)", asm_lines[i])[0]).group(0))
+			rs1 = int(re.search(r"[0-9]+", re.findall(r"f([0-9]+)", asm_lines[i])[1]).group(0))
+			rs2 = int(re.search(r"[0-9]+", re.findall(r"f([0-9]+)", asm_lines[i])[2]).group(0))
+			command = hex((f7 << 25) + (rs2 << 20) + (rs1 << 15) + (f3 << 12) + (rd << 7) + opcode)[2:]
+			while(len(command) < 8):
+				command = "0" + command
+			hex_line = hex_addr + command + "\n"
 		elif(re.search(r"slli", asm_lines[i])):
 			opcode = 19
 			f3 = 1
