@@ -1,0 +1,23 @@
+"image_name": "AA"
+#stored as name/key: start addr, size
+"memory_map":
+  "boot_block": [0x0, 0x1FF]
+  "io": [0x200, 0x5FF]
+  "user_program": [0x800, 0x3FFF]
+  "user_file_system": [0x4800, 0xFFF]
+  "user_data": [0x5800, 0x7FFF]
+  "user_stack": [0xE800, 0x3FF]
+  "kernel_stack": [0xEC00, 0x3FF]
+  "kernel_code": [0xF000, 0xFFF]
+"kernel_files":
+  - "test_img_files/kernel_test.asm"
+  - "test_img_files/lib_screen_write.asm"
+"user_programs":
+
+"user_data":
+  - "test_img_files/user_data1.txt"
+  - "test_img_files/user_data2.txt"
+"io_map":
+  "screen_x_cursor": 0x200
+  "screen_y_cursor": 0x201
+  "screen_data_write": 0x202

@@ -7,6 +7,10 @@ fadd.d f3, f1, f2
 fsw f3, 0(x3)
 fsub.d f4, f1, f2
 fsw f4, 4(x3)
+fmul.d f5, f1, f2
+fsw f5, 8(x3)
+fdiv.d f6, f1, f2
+fsw f6, 12(x3)
 
 
 org 0x1000
